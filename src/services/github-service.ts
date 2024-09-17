@@ -1,3 +1,4 @@
+import { RestEndpointMethodTypes } from "@octokit/rest";
 import GithubProvider from "../providers/github-provider.js";
 import { FlatRepository, Repository } from "../types/repository.type.js";
 
@@ -17,58 +18,69 @@ export class GithubService {
     }));
   }
 
-  private async countFiles(repoName: string, path = ""): Promise<number> {
-    let numberOfFiles = 0;
-    const pathContent = await this.githubProvider.getRepositoryContent(
+  private async getRepositoryTree(repoName: string, defaultBranch: string) {
+    // Get the latest commit SHA on the specified branch
+    const ref = await this.githubProvider.getRef(
       repoName,
-      path
+      `heads/${defaultBranch}`
     );
 
-    if (Array.isArray(pathContent)) {
-      // This is a folder
-      for (const item of pathContent) {
-        if (item.type === "file") {
-          numberOfFiles++;
-        } else if (item.type === "dir") {
-          numberOfFiles += await this.countFiles(repoName, item.path);
-        }
-      }
-    } else {
-      // This is a file
-      numberOfFiles = 1;
-    }
-
-    return numberOfFiles;
+    // Fetch the tree recursively
+    const treeData = await this.githubProvider.getRepositoryTreeRecursively(
+      repoName,
+      ref.object.sha
+    );
+    return treeData.tree;
   }
 
-  private async getRandomYmlFileContent(repoName: string): Promise<string> {
-    const { items: ymlFiles, total_count: numberOfYmlFiles } =
-      await this.githubProvider.searchFilesWithExtension(repoName, "yaml");
-    let randomYmlFileContent = "";
+  private async getrandomYamlFileContent(
+    repoName: string,
+    tree: RestEndpointMethodTypes["git"]["getTree"]["response"]["data"]["tree"]
+  ): Promise<string> {
+    const yamlFiles = tree.filter((item) => item.path?.endsWith("yaml"));
+    let randomYamlFileContent = "";
 
-    if (numberOfYmlFiles > 0) {
-      const ymlFile = await this.githubProvider.getRepositoryContent(
+    if (yamlFiles.length > 0) {
+      const yamlFile = await this.githubProvider.getRepositoryPathContent(
         repoName,
-        ymlFiles[0].path
+        yamlFiles[0].path!
       );
-      if (!Array.isArray(ymlFile) && ymlFile.type === "file") {
-        randomYmlFileContent = ymlFile.content;
-        // randomYmlFileContent= Buffer.from(ymlFile.content, 'base64').toString();
+
+      if (!Array.isArray(yamlFile) && yamlFile.type === "file") {
+        randomYamlFileContent = Buffer.from(
+          yamlFile.content,
+          "base64"
+        ).toString();
       }
     }
 
-    return randomYmlFileContent;
+    return randomYamlFileContent;
   }
 
   public async getRepositoryDetails(repoName: string): Promise<Repository> {
+    console.log(`getRepositoryDetails - START`, { repoName });
+
     const repoDetails = await this.githubProvider.getRepositoryDetails(
       repoName
     );
-    const numberOfFiles = await this.countFiles(repoName);
-    const randomYmlFileContent = await this.getRandomYmlFileContent(repoName);
+    const defaultBranch = repoDetails.default_branch;
+    const tree = await this.getRepositoryTree(repoName, defaultBranch);
+
+    // Count the number of files
+    const numberOfFiles = tree.filter((item) => item.type === "blob").length;
+
+    // Fetching a random yaml file content
+    const randomYamlFileContent = await this.getrandomYamlFileContent(
+      repoName,
+      tree
+    );
+
+    // Get repository webhook list
     const repoWebhooks = await this.githubProvider.getRepositoryWebhooks(
       repoName
     );
+
+    console.log(`getRepositoryDetails - IN PROGRESS`, { repoName });
 
     return {
       name: repoDetails.name,
@@ -76,7 +88,7 @@ export class GithubService {
       owner: repoDetails.owner.login,
       isPrivate: repoDetails.private,
       numberOfFiles,
-      randomYmlFileContent,
+      randomYamlFileContent,
       webhooks: repoWebhooks
         .filter((webhook) => webhook.active)
         .map((webhook) => webhook.url),

@@ -13,7 +13,7 @@ export default gql`
     owner: String!
     isPrivate: Boolean!
     numberOfFiles: Int!
-    ymlContent: String
+    randomYamlFileContent: String
     webhooks: [String]
   }
 

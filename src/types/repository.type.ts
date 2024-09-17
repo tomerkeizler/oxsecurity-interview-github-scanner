@@ -7,6 +7,6 @@ export interface FlatRepository {
 export interface Repository extends FlatRepository {
   isPrivate: boolean;
   numberOfFiles: number;
-  randomYmlFileContent?: string;
-  webhooks?: Array<string>;
+  randomYamlFileContent?: string;
+  webhooks: Array<string>;
 }
