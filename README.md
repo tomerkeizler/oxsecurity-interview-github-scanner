@@ -71,7 +71,7 @@ with variables:
 ```bash
 {
   "repoName": "oxsecurity-interview-repoA",
-  "developerToken": "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",
+  "developerToken": "************************",  # A valid token was sent to the Talent Acquisition Manager by mail
 }
 ```
 
