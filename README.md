@@ -74,3 +74,9 @@ with variables:
   "developerToken": "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",
 }
 ```
+
+You need to provide a developer token when sending a request, due to the exrecise requirement:
+
+``
+"Make sure to add to your input a "developer token" from github and return the appropriate data for the scenario"
+``
