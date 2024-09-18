@@ -29,9 +29,9 @@ suppoeted scenarios:
 - Show List of Repositories
   - Repo name
   - Repo size
-  - Repo owner
-  - 
-- Show Repository details (LIMITED to 2 concurrent operations)
+  - Repo owner 
+
+- Show Repository details **(LIMITED to 2 concurrent operations)**
   - Repo name
   - Repo size
   - Repo owner
@@ -71,6 +71,6 @@ with variables:
 ```bash
 {
   "repoName": "oxsecurity-interview-repoA",
-  "developerToken": "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",
+  "developerToken": "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",
 }
 ```
