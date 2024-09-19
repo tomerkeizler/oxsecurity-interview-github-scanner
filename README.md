@@ -24,6 +24,10 @@ $ npx tsx src/index.ts
 
 The API server must become available at http://localhost:4000/ which will open the Apollo Studio
 
+## Client Application
+Run the server in conjuction with this client application:
+https://github.com/tomerkeizler/oxsecurity-interview-github-scanner-client
+
 ## Description
 suppoeted scenarios:
 - Show List of Repositories
